@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>页面跳转确认提示</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 装饰性背景元素 */
+        .bg-bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+            animation: float 15s infinite ease-in-out;
+        }
+        
+        .bg-bubble:nth-child(1) {
+            width: 150px;
+            height: 150px;
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+        
+        .bg-bubble:nth-child(2) {
+            width: 250px;
+            height: 250px;
+            bottom: 15%;
+            right: 5%;
+            animation-delay: 2s;
+        }
+        
+        .bg-bubble:nth-child(3) {
+            width: 80px;
+            height: 80px;
+            top: 70%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+        
+        .bg-bubble:nth-child(4) {
+            width: 120px;
+            height: 120px;
+            bottom: 10%;
+            left: 40%;
+            animation-delay: 6s;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.5s ease;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .container.hidden {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        
+        .header {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+            animation: pulse 2s infinite;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .content h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        
+        .destination {
+            background: #f0f5ff;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 4px solid #2575fc;
+            transition: all 0.3s ease;
+        }
+        
+        .destination:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .destination i {
+            color: #2575fc;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        
+        .destination span {
+            font-weight: 600;
+            color: #333;
+            font-size: 18px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 80%;
+        }
+        
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            border-radius: 50px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 160px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(to right, #5a0db9, #1c68f0);
+        }
+        
+        .btn-secondary:hover {
+            background: #f5f5f5;
+            border-color: #d0d0d0;
+        }
+        
+        .footer {
+            padding: 20px;
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+        
+        .countdown {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .countdown span {
+            font-weight: 600;
+            color: #2575fc;
+        }
+        
+        /* 备案号样式 */
+        .beian {
+            padding: 15px 0;
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            border-top: 1px solid #eee;
+            background-color: #f9f9f9;
+        }
+        
+        .beian a {
+            color: #666;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .beian a:hover {
+            color: #2575fc;
+            text-decoration: underline;
+        }
+        
+        .beian i {
+            margin-right: 5px;
+            font-size: 14px;
+        }
+        
+        /* 动画效果 */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-20px) translateX(10px); }
+            50% { transform: translateY(10px) translateX(-15px); }
+            75% { transform: translateY(-15px) translateX(-10px); }
+        }
+        
+        .container {
+            animation: fadeIn 0.7s ease-out;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .content {
+                padding: 25px 15px;
+            }
+            
+            .btn {
+                min-width: 140px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+            
+            .destination span {
+                font-size: 16px;
+            }
+        }
+
+        /* 错误提示样式 */
+        .error-message {
+            color: #d9534f;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 装饰性背景元素 -->
+    <div class="bg-bubble"></div>
+    <div class="bg-bubble"></div>
+    <div class="bg-bubble"></div>
+    <div class="bg-bubble"></div>
+    
+    <div class="container" id="confirmationDialog">
+        <div class="header">
+            <i class="fas fa-external-link-alt"></i>
+            <h1>即将离开当前页面</h1>
+            <p>您正在尝试访问外部网站</p>
+        </div>
+        
+        <div class="content">
+            <h2>您确定要跳转到以下页面吗？</h2>
+            
+            <div class="error-message" id="errorMessage">
+                <i class="fas fa-exclamation-triangle"></i> 无法加载跳转配置，请稍后再试
+            </div>
+            
+            <div class="destination">
+                <i class="fas fa-link"></i>
+                <span id="destinationUrl">正在加载目标网址...</span>
+            </div>
+            
+            <p>请注意：该页面不在本站控制范围内，请谨慎访问外部链接。</p>
+            
+            <div class="countdown">
+                页面将在 <span id="countdown">--</span> 秒后自动跳转
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" id="confirmBtn">
+                    <i class="fas fa-check"></i> 确认跳转
+                </button>
+                <button class="btn btn-secondary" id="cancelBtn">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            安全提示：请确保您信任该网站后再继续访问
+        </div>
+        
+        <!-- 备案号区域 -->
+        <div class="beian">
+            <a href="https://beian.miit.gov.cn/" target="_blank">
+                <i class="fas fa-record-vinyl"></i> 闽ICP备2025107306号-1
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmationDialog = document.getElementById('confirmationDialog');
+            const confirmBtn = document.getElementById('confirmBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const countdownElement = document.getElementById('countdown');
+            const destinationUrlElement = document.getElementById('destinationUrl');
+            const errorMessageElement = document.getElementById('errorMessage');
+            
+            // 从配置文件获取设置
+            fetch('config.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('配置文件加载失败');
+                    }
+                    return response.json();
+                })
+                .then(config => {
+                    if (!config.redirectUrl) {
+                        throw new Error('配置文件中缺少redirectUrl字段');
+                    }
+                    
+                    const targetUrl = config.redirectUrl;
+                    let countdown = config.countdownSeconds || 10;
+                    
+                    // 更新UI显示
+                    destinationUrlElement.textContent = targetUrl;
+                    countdownElement.textContent = countdown;
+                    
+                    // 倒计时功能
+                    function startCountdown() {
+                        const countdownInterval = setInterval(() => {
+                            countdown--;
+                            countdownElement.textContent = countdown;
+                            
+                            if (countdown <= 0) {
+                                clearInterval(countdownInterval);
+                                redirectToTarget();
+                            }
+                        }, 1000);
+                        
+                        return countdownInterval;
+                    }
+                    
+                    function redirectToTarget() {
+                        confirmationDialog.classList.add('hidden');
+                        setTimeout(() => {
+                            window.location.href = targetUrl;
+                        }, 500);
+                    }
+                    
+                    let countdownInterval = startCountdown();
+                    
+                    // 确认按钮点击事件
+                    confirmBtn.addEventListener('click', () => {
+                        clearInterval(countdownInterval);
+                        redirectToTarget();
+                    });
+                    
+                    // 取消按钮点击事件
+                    cancelBtn.addEventListener('click', () => {
+                        clearInterval(countdownInterval);
+                        confirmationDialog.classList.add('hidden');
+                        setTimeout(() => {
+                            history.back();
+                        }, 500);
+                    });
+                })
+                .catch(error => {
+                    console.error('加载配置错误:', error);
+                    
+                    // 显示错误信息
+                    errorMessageElement.style.display = 'block';
+                    destinationUrlElement.textContent = "配置加载错误";
+                    countdownElement.style.display = "none";
+                    
+                    // 禁用确认按钮
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = '<i class="fas fa-ban"></i> 无法跳转';
+                    confirmBtn.classList.remove('btn-primary');
+                    confirmBtn.classList.add('btn-secondary');
+                    
+                    // 取消按钮返回上一页
+                    cancelBtn.addEventListener('click', () => {
+                        confirmationDialog.classList.add('hidden');
+                        setTimeout(() => {
+                            history.back();
+                        }, 500);
+                    });
+                });
+        });
+    </script>
+</body>
+</html>
